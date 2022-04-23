@@ -10,6 +10,12 @@ Additional Features/Improvements by Mediocre-Put2826:
 
 PBW downloads https://github.com/clach04/AutoPebble-Pebble-app/releases/tag/tweaks
 
+Requires companion app for Android as well as Tasker
+
+  * https://joaoapps.com/autopebble/
+      * https://play.google.com/store/apps/details?id=com.joaomgcd.autopebble
+  * https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm
+
 For more details see:
 
   * https://www.reddit.com/r/pebble/comments/sxtrwd/autopebble_version_with_fixes_for_pebble_time/
