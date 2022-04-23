@@ -84,9 +84,16 @@ void sendLongActionToPhone(const char* text){
 }
 
 char * getLabel(int index){
+	const char* locale_str = i18n_get_system_locale();
 	char* text = getCurrentAutoPebbleList()->labels[index];
 	if(!text){
-		text = "not found";
+		if (strncmp(locale_str, "ru", 2) == 0){
+			text = "не найден";
+		}
+		else{
+			text = "not found";
+		}
+		
 	}
 	
 	return text;
@@ -125,13 +132,13 @@ static void handle_tick_list(struct tm *tick_time, TimeUnits units_changed) {
 }
 void mainMenu_draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context)
 { // Adding the row number as text on the row cell.
-	graphics_context_set_text_color(ctx, GColorBlack); // This is important.
+	//graphics_context_set_text_color(ctx, GColorElectricUltramarine); // This is important. <---- прикол разработчика
 	char * font = getCurrentAutoPebbleWindow()->textFont;
 	if(!font){
 		font = FONT_KEY_GOTHIC_14;
 	}
 	char * strToUse =  getTimeTextIfTimeVariable(NULL, getLabel(cell_index->row),font,handle_tick_list);
-	graphics_draw_text(ctx, strToUse, fonts_get_system_font(font), GRect(0,0,layer_get_frame(cell_layer).size.w,layer_get_frame(cell_layer).size.h), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+	graphics_draw_text(ctx, strToUse, fonts_get_system_font(font), GRect(0,0,layer_get_frame(cell_layer).size.w,layer_get_frame(cell_layer).size.h), GTextOverflowModeTrailingEllipsis, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentLeft), NULL);
 	// Just saying layer_get_frame(cell_layer) for the 4th argument doesn't work.  Probably because the GContext is relative to the cell already, but the cell_layer.frame is relative to the menulayer or the screen or something.
 }
 
@@ -143,7 +150,7 @@ void mainMenu_draw_header(GContext *ctx, const Layer *cell_layer, uint16_t secti
 	}
 	APP_LOG(APP_LOG_LEVEL_INFO, "Drawing header");
 	char * strToUse =  getTimeTextIfTimeVariable(NULL, getCurrentAutoPebbleList()->headerText,font,handle_tick_list);
-	graphics_context_set_text_color(ctx, GColorBlack); // This is important.
+	//graphics_context_set_text_color(ctx, GColorBlack); // This is important. <---- прикол разработчика
 	graphics_draw_text(ctx, strToUse, fonts_get_system_font(font), GRect(0,0,layer_get_frame(cell_layer).size.w,layer_get_frame(cell_layer).size.h), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 int16_t mainMenu_get_header_height(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context)
@@ -226,6 +233,9 @@ AutoPebbleWindow* initList(){
 	
 	MenuLayer* mainMenu = menu_layer_create(GRect(0,0,frame.size.w,frame.size.h));
 	autoPebbleList->menuLayer = mainMenu;
+	#ifdef PBL_ROUND
+		menu_layer_set_center_focused(autoPebbleList->menuLayer, true);
+	#endif
 	
 	menu_layer_set_click_config_onto_window(autoPebbleList->menuLayer, autoPebbleWindow->window);
 	//window_set_click_config_provider_with_context(window, (ClickConfigProvider) list_config_provider, autoPebbleWindow);
@@ -242,6 +252,10 @@ AutoPebbleWindow* initList(){
 	cbacks.selection_changed = &mainMenu_selection_changed;
 	cbacks.select_long_click = &mainMenu_select_long_click; // I didn't use this.
 	menu_layer_set_callbacks(mainMenu, NULL, cbacks); // I have no user data to supply to the callback functions, so 
+	//menu_layer_set_normal_colors(menu_layer_get_layer(mainMenu), GColor background, GColor foreground);  //тут можна поменять цвет текста и выдиление меню
+	#ifdef PBL_COLOR
+		menu_layer_set_highlight_colors(mainMenu, GColorVividCerulean, GColorBlack); //тут можна поменять цвет текста и выдиление меню
+	#endif
 	layer_add_child(window_get_root_layer(window), menu_layer_get_layer(mainMenu));
 	window_stack_push(window, true);
 	return autoPebbleWindow;

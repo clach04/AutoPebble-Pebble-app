@@ -2,8 +2,6 @@
 #include "AutoPebbleWindows.h"
 #include "Utils.h"
 
-
-
 void getLastCommandsFromPhone(){
 	sendCommandToPhone(PEBBLE_GET_LAST_LIST_COMMAND, "get");
 }
@@ -12,7 +10,7 @@ void signalAppStarted(){
  	app_message_outbox_begin(&iter);
 	/*Tuplet value1 = TupletInteger(PEBBLE_WATCH_APP_VERSION, (uint8_t)1);
  	dict_write_tuplet(iter, &value1);*/
-	Tuplet value = TupletInteger(PEBBLE_SIGNAL_APP_START_COMMAND, (uint8_t)app_message_inbox_size_maximum());
+	Tuplet value = TupletInteger(PEBBLE_SIGNAL_APP_START_COMMAND, (uint8_t)0x7e);
  	dict_write_tuplet(iter, &value);
 	app_message_outbox_send();
 }
@@ -133,7 +131,7 @@ void in_received_handler(DictionaryIterator *received, void *context) {
 			if(commandClearHistory->value->int16 == HISTORY_REPLACE){
 				logString("Popping window");
 				window_stack_pop(false);
-				// popAutoPebbleWindow();
+				popAutoPebbleWindow();
 			}else if(commandClearHistory->value->int16 == HISTORY_CLEAR){	
 				logString("Clearing history");		 
 				window_stack_pop_all(false);
@@ -234,25 +232,22 @@ void in_received_handler(DictionaryIterator *received, void *context) {
 		if(commandEnded){
 			textLayerTime = NULL;
 			textFontTime = NULL;			
-			//tick_timer_service_unsubscribe();
+			tick_timer_service_unsubscribe();  //было закоментировано, возможно по этому падало приложение
 		}
 		if(commandType == PEBBLE_SCREEN_TYPE_LIST)
 		{ 
-			
 			handleList(received, context, autoPebbleWindow);
 			if(commandEnded){
 				finishList(autoPebbleWindow);
 			}
 		}else if(commandType == PEBBLE_SCREEN_TYPE_QUICK_SCREEN)
 		{ 
-
 			handleQuickScreen(received, context, autoPebbleWindow);
 			if(commandEnded){
 				finishQuickScreen(autoPebbleWindow);
 			}
 		}else if(commandType == PEBBLE_SCREEN_TYPE_TEXT_SCREEN)
 		{ 
-
 			handleTextScreen(received, context, autoPebbleWindow);
 			if(commandEnded){
 				finishTextScreen(autoPebbleWindow);
@@ -309,13 +304,24 @@ void init_delayed(){
 	app_message_register_outbox_sent(out_sent_handler);
 }
 void showTutorial(void * windowVoid){
+	const char* locale_str = i18n_get_system_locale();
 	Window * window = (Window*)windowVoid;
 	if(window && window_stack_contains_window(window) && firstWindow){
-		tutorialText = text_layer_create(GRect(0,0,144,168));
+		GRect bounds = layer_get_bounds(windowVoid);
+		tutorialText = text_layer_create(bounds);
+
 		text_layer_set_text_alignment(tutorialText, GTextAlignmentLeft); // Center the text.
+
 		text_layer_set_font(tutorialText, fonts_get_system_font(FONT_KEY_GOTHIC_18));	
-		text_layer_set_text(tutorialText, "In Tasker:\n- add an 'AutoPebble App' condition\n- check 'Watch App Opened'\n- in the Task set an AutoPebble screen");
+		if (strncmp(locale_str, "ru", 2) == 0){
+			text_layer_set_text(tutorialText, "В Tasker:\n- добавьте условие 'AutoPebble App'\n- установите флажок 'Watch App Opened'\n- в Task установите экран AutoPebble");
+		}
+		else{
+			text_layer_set_text(tutorialText, "In Tasker:\n- add an 'AutoPebble App' condition\n- check 'Watch App Opened'\n- in the Task set an AutoPebble screen");
+		}
+		
 		layer_add_child(window_get_root_layer(window), text_layer_get_layer(tutorialText));
+		text_layer_enable_screen_text_flow_and_paging(tutorialText, 2);
 	}
 } 
 void bluetooth_connection_callback(bool connected) {
@@ -331,15 +337,21 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 }
 void init(void)
 {
-	
+	const char* locale_str = i18n_get_system_locale();
 	WindowHandlers wh = { .unload = &detailUnload };
 	Window * detailW = window_create();
 	window_set_window_handlers(detailW, wh);
-	
-	detailW_text = text_layer_create(GRect(0,64,144,168));
+	Layer *window_layer = window_get_root_layer(detailW);
+  	GRect bounds = layer_get_bounds(window_layer);
+	detailW_text = text_layer_create(GRect(bounds.origin.x, bounds.size.h / 2 - 18, bounds.size.w, bounds.size.h));
 	text_layer_set_text_alignment(detailW_text, GTextAlignmentCenter); // Center the text.
-	text_layer_set_font(detailW_text, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));	
-	text_layer_set_text(detailW_text, "Loading...");
+	text_layer_set_font(detailW_text, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
+	if (strncmp(locale_str, "ru", 2) == 0){
+			text_layer_set_text(detailW_text, "Загрузка...");
+		}
+	else{
+			text_layer_set_text(detailW_text, "Loading...");
+		}	
 	layer_add_child(window_get_root_layer(detailW), text_layer_get_layer(detailW_text));
 	
 	app_timer_register(3000, showTutorial, detailW);

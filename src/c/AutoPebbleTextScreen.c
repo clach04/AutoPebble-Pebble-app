@@ -97,16 +97,15 @@ void config_textscreen_click_provider(void *context) {
     window_multi_click_subscribe(BUTTON_ID_BACK,2, 0, 0, true, textscreen_back_multi_click_handler);	
 }
 AutoPebbleWindow * initTextScreen(){
-	
+	APP_LOG(APP_LOG_LEVEL_INFO, "INIT TEXT SCREEN -----------------------------/////");
+
+	const char* locale_str = i18n_get_system_locale();
 	WindowHandlers wh = { .unload = &textScreenUnload };
 	Window * window = window_create();
 	window_set_window_handlers(window, wh);
 	AutoPebbleWindow * autoPebbleWindow = addAutoPebbleTextScreenWindow(window);
 	AutoPebbleTextScreen* autoPebbleTextScreen = getAutoPebbleTextScreen(autoPebbleWindow);
-	
-
-	
-	
+		
 	Layer *window_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_frame(window_layer);
 	GRect max_text_bounds = GRect(0, title_height + vert_scroll_text_padding, bounds.size.w, 2000);
@@ -119,18 +118,34 @@ AutoPebbleWindow * initTextScreen(){
 	scroll_layer_set_callbacks(autoPebbleTextScreen->scroll_layer, scrollCallbacks);
 	
 	scroll_layer_set_click_config_onto_window(autoPebbleTextScreen->scroll_layer, window);
+	#ifdef PBL_ROUND
+  	scroll_layer_set_paging(autoPebbleTextScreen->scroll_layer, true);
+	#endif
 	
 	// Initialize the text layer
 	autoPebbleTextScreen->textLayerText = text_layer_create(max_text_bounds);
-	text_layer_set_text(autoPebbleTextScreen->textLayerText, "Loading Text Screen...");
+	
+	if (strncmp(locale_str, "ru", 2) == 0){
+			text_layer_set_text(autoPebbleTextScreen->textLayerText, "Загрузка Text Screen...");
+		}
+	else{
+			text_layer_set_text(autoPebbleTextScreen->textLayerText, "Loading Text Screen...");
+		}
 	
 	// Change the font to a nice readable one
 	// This is system font; you can inspect pebble_fonts.h for all system fonts
 	// or you can take a look at feature_custom_font to add your own font
 	text_layer_set_font(autoPebbleTextScreen->textLayerText, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 	
+	#ifdef PBL_ROUND
+  	text_layer_set_text_alignment(autoPebbleTextScreen->textLayerText, GTextAlignmentCenter);
+  	uint8_t inset = 2;
+  	text_layer_enable_screen_text_flow_and_paging(autoPebbleTextScreen->textLayerText, inset);
+	#endif
 	// Trim text layer and scroll content to fit text box
 	GSize max_size = text_layer_get_content_size(autoPebbleTextScreen->textLayerText);
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "TEXT: %s", text_layer_get_text(autoPebbleTextScreen->textLayerText));
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "Width %d; Height %d", (int)max_size.w, max_size.h);
 	text_layer_set_size(autoPebbleTextScreen->textLayerText, max_size);
 	scroll_layer_set_content_size(autoPebbleTextScreen->scroll_layer, GSize(bounds.size.w, max_size.h + vert_scroll_text_padding));
 	
@@ -172,6 +187,7 @@ void handleTextScreen(DictionaryIterator *received, void *context, AutoPebbleWin
 
 void finishTextScreen(AutoPebbleWindow * window){
 	//logString("Refreshing text screen");
+	APP_LOG(APP_LOG_LEVEL_INFO, "FINISH TEXT SCREEN -----------------------------/////");
 	AutoPebbleTextScreen* autoPebbleTextScreen = getAutoPebbleTextScreen(window);
 	char * textFont = window->textFont;
 	if(!textFont){
@@ -181,23 +197,55 @@ void finishTextScreen(AutoPebbleWindow * window){
 	if(!titleFont){
 		titleFont = FONT_KEY_GOTHIC_18_BOLD;
 	}
+
+	text_layer_destroy(autoPebbleTextScreen->textLayerTitle);
+	text_layer_destroy(autoPebbleTextScreen->textLayerText);
 	Layer *window_layer = window_get_root_layer(window->window);
 	GRect bounds = layer_get_frame(window_layer);
-	
+	autoPebbleTextScreen->textLayerTitle = text_layer_create(GRect(bounds.origin.x,bounds.origin.y,bounds.size.w,title_height));
+	text_layer_set_text(autoPebbleTextScreen->textLayerTitle, autoPebbleTextScreen->labelTitle);
+	text_layer_set_font(autoPebbleTextScreen->textLayerTitle, fonts_get_system_font(titleFont));
+	GSize max_size_title = text_layer_get_content_size(autoPebbleTextScreen->textLayerTitle);
+	title_height = max_size_title.h + 3;
+	text_layer_destroy(autoPebbleTextScreen->textLayerTitle);
+	GRect max_text_bounds = GRect(0, title_height + vert_scroll_text_padding, bounds.size.w, 2000);
+	// Initialize the text layer
+
+	autoPebbleTextScreen->textLayerTitle = text_layer_create(GRect(bounds.origin.x,bounds.origin.y,bounds.size.w,title_height));
+	text_layer_set_text_alignment(autoPebbleTextScreen->textLayerTitle, GTextAlignmentCenter); // Center the text.
 	setLayerText(autoPebbleTextScreen->textLayerTitle, autoPebbleTextScreen->labelTitle, titleFont);
-	setLayerText(autoPebbleTextScreen->textLayerText, autoPebbleTextScreen->labelText, textFont);	
+	
+	autoPebbleTextScreen->textLayerText = text_layer_create(max_text_bounds);
+	setLayerText(autoPebbleTextScreen->textLayerText, autoPebbleTextScreen->labelText, textFont);
+	
+	// Add the layers for display
+	scroll_layer_add_child(autoPebbleTextScreen->scroll_layer, text_layer_get_layer(autoPebbleTextScreen->textLayerTitle));
+	scroll_layer_add_child(autoPebbleTextScreen->scroll_layer, text_layer_get_layer(autoPebbleTextScreen->textLayerText));
+	
+
+	
 	/*text_layer_set_text(autoPebbleTextScreen->textLayerTitle, autoPebbleTextScreen->labelTitle);
 	text_layer_set_font(autoPebbleTextScreen->textLayerTitle, fonts_get_system_font(titleFont));
 	text_layer_set_text(autoPebbleTextScreen->textLayerText, autoPebbleTextScreen->labelText);
 	text_layer_set_font(autoPebbleTextScreen->textLayerText, fonts_get_system_font(textFont));*/
 	
-	GSize max_size_title = text_layer_get_content_size(autoPebbleTextScreen->textLayerTitle);
+	//max_size_title = text_layer_get_content_size(autoPebbleTextScreen->textLayerTitle);
 	//APP_LOG(APP_LOG_LEVEL_DEBUG, "Text: '%s'; Font: %s; Width %d; Height %d",text_layer_get_text(autoPebbleTextScreen->textLayerTitle),titleFont, (int)max_size_title.w, max_size_title.h);
-	title_height = max_size_title.h + 10;
+	//title_height = max_size_title.h + 3;
 	text_layer_set_size(autoPebbleTextScreen->textLayerTitle, GSize(144,  title_height));
 	layer_set_frame(text_layer_get_layer(autoPebbleTextScreen->textLayerTitle), GRect(0,0,144,title_height));
 	
+	#ifdef PBL_ROUND
+  	text_layer_set_text_alignment(autoPebbleTextScreen->textLayerText, GTextAlignmentCenter);
+  	uint8_t inset = 4;
+  	text_layer_enable_screen_text_flow_and_paging(autoPebbleTextScreen->textLayerText, inset);
+	#endif
 	GSize max_size = text_layer_get_content_size(autoPebbleTextScreen->textLayerText);
+	//max_size.w = 144;
+	//max_size.h = 170;
+	max_size.h = max_size.h + 8;
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "TEXT: %s", text_layer_get_text(autoPebbleTextScreen->textLayerText));
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "Font: %s; Width %d; Height %d", textFont, (int)max_size.w, max_size.h);
 	text_layer_set_size(autoPebbleTextScreen->textLayerText, max_size);
 	scroll_layer_set_content_size(autoPebbleTextScreen->scroll_layer, GSize(bounds.size.w, max_size.h + vert_scroll_text_padding + title_height));
 	
