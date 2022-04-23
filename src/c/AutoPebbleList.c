@@ -132,7 +132,7 @@ static void handle_tick_list(struct tm *tick_time, TimeUnits units_changed) {
 }
 void mainMenu_draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context)
 { // Adding the row number as text on the row cell.
-	//graphics_context_set_text_color(ctx, GColorElectricUltramarine); // This is important. <---- прикол разработчика
+	//graphics_context_set_text_color(ctx, GColorElectricUltramarine); // This is important. <---- прикол разработчика / developer joke
 	char * font = getCurrentAutoPebbleWindow()->textFont;
 	if(!font){
 		font = FONT_KEY_GOTHIC_14;
@@ -150,7 +150,7 @@ void mainMenu_draw_header(GContext *ctx, const Layer *cell_layer, uint16_t secti
 	}
 	APP_LOG(APP_LOG_LEVEL_INFO, "Drawing header");
 	char * strToUse =  getTimeTextIfTimeVariable(NULL, getCurrentAutoPebbleList()->headerText,font,handle_tick_list);
-	//graphics_context_set_text_color(ctx, GColorBlack); // This is important. <---- прикол разработчика
+	//graphics_context_set_text_color(ctx, GColorBlack); // This is important. <---- прикол разработчика / developer joke
 	graphics_draw_text(ctx, strToUse, fonts_get_system_font(font), GRect(0,0,layer_get_frame(cell_layer).size.w,layer_get_frame(cell_layer).size.h), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 int16_t mainMenu_get_header_height(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context)
@@ -252,9 +252,9 @@ AutoPebbleWindow* initList(){
 	cbacks.selection_changed = &mainMenu_selection_changed;
 	cbacks.select_long_click = &mainMenu_select_long_click; // I didn't use this.
 	menu_layer_set_callbacks(mainMenu, NULL, cbacks); // I have no user data to supply to the callback functions, so 
-	//menu_layer_set_normal_colors(menu_layer_get_layer(mainMenu), GColor background, GColor foreground);  //тут можна поменять цвет текста и выдиление меню
+	//menu_layer_set_normal_colors(menu_layer_get_layer(mainMenu), GColor background, GColor foreground);  //тут можна поменять цвет текста и выдиление меню / here you can change the color of the text and the selection of the menu
 	#ifdef PBL_COLOR
-		menu_layer_set_highlight_colors(mainMenu, GColorVividCerulean, GColorBlack); //тут можна поменять цвет текста и выдиление меню
+		menu_layer_set_highlight_colors(mainMenu, GColorVividCerulean, GColorBlack); //тут можна поменять цвет текста и выдиление меню / here you can change the color of the text and the selection of the menu
 	#endif
 	layer_add_child(window_get_root_layer(window), menu_layer_get_layer(mainMenu));
 	window_stack_push(window, true);

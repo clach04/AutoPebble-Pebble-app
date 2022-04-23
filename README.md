@@ -1,5 +1,14 @@
 # AutoPebble-Pebble-app
+
 This is an archive of the the AutoPebble Pebbble app's code that joaomgcd is no longer mantaining.
+
+Additional Features/Improvements by Mediocre-Put2826:
+
+  * Pebble round support
+  * color support whilst preserving black and white support
+  * Russian text support
+
+PBW downloads https://github.com/clach04/AutoPebble-Pebble-app/releases/tag/tweaks
 
 For more details see:
 
