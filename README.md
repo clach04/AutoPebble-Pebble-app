@@ -1,6 +1,6 @@
 # AutoPebble-Pebble-app
 
-This is an archive of the the AutoPebble Pebbble app's code that joaomgcd is no longer mantaining.
+This is an archive of the the AutoPebble Pebbble app's code that joaomgcd is no longer mantaining. Original https://apps.rebble.io/en_US/application/52d1e5957c0c7321a8000008?query=autoapp&section=watchapps&dev_settings=true
 
 Additional Features/Improvements by Mediocre-Put2826:
 
