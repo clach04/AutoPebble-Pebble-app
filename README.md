@@ -21,3 +21,10 @@ For more details see:
   * https://www.reddit.com/r/pebble/comments/sxtrwd/autopebble_version_with_fixes_for_pebble_time/
   * https://apps.rebble.io/en_US/application/52d1e5957c0c7321a8000008?query=autopebble&section=watchapps
   * https://joaoapps.com/autopebble/
+
+
+## Resources
+
+  * https://www.reddit.com/r/pebble/comments/2uv35t/app_autopebble_im_blond_so_stupid_please_help_me/
+  * https://github.com/clach04/AutoPebble-Pebble-app/wiki
+ 
